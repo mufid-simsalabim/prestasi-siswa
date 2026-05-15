@@ -49,39 +49,36 @@
     </form>
 </div>
 
-{{-- Form hapus massal --}}
-<form id="formHapusMassal" action="{{ route('students.destroy-selected') }}" method="POST">
+{{-- SATU FORM untuk semua aksi hapus --}}
+<form id="formHapus" action="{{ route('students.destroy-selected') }}" method="POST">
     @csrf
     @method('DELETE')
+    <input type="hidden" name="aksi" id="inputAksi" value="terpilih">
 
-    {{-- Toolbar hapus --}}
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div class="flex items-center space-x-3">
-            <input type="checkbox" id="checkAll" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
-            <label for="checkAll" class="text-sm text-gray-600 dark:text-gray-300">Pilih Semua</label>
-            <span id="selectedCount" class="text-xs text-gray-400 dark:text-gray-500"></span>
-        </div>
+    {{-- Toolbar --}}
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span id="selectedCount" class="text-sm text-gray-500 dark:text-gray-400">
+            Centang siswa untuk menandai
+        </span>
         <div class="flex gap-2">
-            <button type="submit" id="btnHapusTerpilih"
-                    onclick="return konfirmasiHapusTerpilih()"
+            {{-- Hapus Terpilih --}}
+            <button type="button" id="btnHapusTerpilih"
+                    onclick="hapusTerpilih()"
                     class="hidden inline-flex items-center space-x-2 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200 text-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
                 <span>Hapus Terpilih</span>
             </button>
-            <form action="{{ route('students.destroy-all') }}" method="POST" class="inline">
-                @csrf
-                @method('DELETE')
-                <button type="submit"
-                        onclick="return konfirmasiHapusSemua()"
-                        class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 text-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    <span>Hapus Semua</span>
-                </button>
-            </form>
+            {{-- Hapus Semua --}}
+            <button type="button"
+                    onclick="hapusSemua()"
+                    class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                <span>Hapus Semua</span>
+            </button>
         </div>
     </div>
 
@@ -102,9 +99,10 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                     @forelse($students as $index => $student)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150" id="row-{{ $student->id }}">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150">
                         <td class="px-4 py-4">
-                            <input type="checkbox" name="selected[]" value="{{ $student->id }}"
+                            <input type="checkbox" name="selected[]"
+                                   value="{{ $student->id }}"
                                    class="checkbox-item w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
                         </td>
                         <td class="px-6 py-4 text-gray-500 dark:text-gray-400">
@@ -147,17 +145,13 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                 </a>
-                                <form action="{{ route('students.destroy', $student) }}" method="POST"
-                                      onsubmit="return confirm('Yakin hapus siswa {{ $student->nama }}?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            class="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900 transition duration-150" title="Hapus">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                    </button>
-                                </form>
+                                <button type="button"
+                                        onclick="hapusSatu({{ $student->id }}, '{{ $student->nama }}')"
+                                        class="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900 transition duration-150" title="Hapus">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -182,51 +176,73 @@
         </div>
         @endif
     </div>
+
 </form>
 
 @endsection
 
 @push('scripts')
 <script>
-// Checkbox pilih semua
-const checkAll = document.getElementById('checkAll');
 const checkboxes = document.querySelectorAll('.checkbox-item');
 const btnHapusTerpilih = document.getElementById('btnHapusTerpilih');
 const selectedCount = document.getElementById('selectedCount');
+const formHapus = document.getElementById('formHapus');
+const inputAksi = document.getElementById('inputAksi');
 
-function updateSelectedCount() {
+// Update jumlah yang dipilih
+function updateSelected() {
     const checked = document.querySelectorAll('.checkbox-item:checked').length;
     if (checked > 0) {
-        selectedCount.textContent = checked + ' dipilih';
+        selectedCount.textContent = checked + ' siswa dipilih';
         btnHapusTerpilih.classList.remove('hidden');
     } else {
-        selectedCount.textContent = '';
+        selectedCount.textContent = 'Centang siswa untuk menandai';
         btnHapusTerpilih.classList.add('hidden');
     }
 }
 
-checkAll.addEventListener('change', function() {
-    checkboxes.forEach(cb => cb.checked = this.checked);
-    updateSelectedCount();
-});
+checkboxes.forEach(cb => cb.addEventListener('change', updateSelected));
 
-checkboxes.forEach(cb => {
-    cb.addEventListener('change', function() {
-        checkAll.checked = [...checkboxes].every(c => c.checked);
-        updateSelectedCount();
-    });
-});
+// Hapus satu siswa
+function hapusSatu(id, nama) {
+    if (!confirm('⚠️ Yakin hapus siswa "' + nama + '"?\n\nData tidak dapat dikembalikan!')) return;
 
-// Konfirmasi hapus terpilih
-function konfirmasiHapusTerpilih() {
-    const checked = document.querySelectorAll('.checkbox-item:checked').length;
-    return confirm('⚠️ PERINGATAN!\n\nAnda akan menghapus ' + checked + ' data siswa.\n\nData yang dihapus tidak dapat dikembalikan!\n\nYakin ingin melanjutkan?');
+    // Uncheck semua dulu
+    checkboxes.forEach(cb => cb.checked = false);
+
+    // Check hanya yang dipilih
+    const cb = document.querySelector('.checkbox-item[value="' + id + '"]');
+    if (cb) cb.checked = true;
+
+    inputAksi.value = 'terpilih';
+    formHapus.submit();
 }
 
-// Konfirmasi hapus semua
-function konfirmasiHapusSemua() {
+// Hapus terpilih
+function hapusTerpilih() {
+    const checked = document.querySelectorAll('.checkbox-item:checked').length;
+    if (checked === 0) {
+        alert('Pilih minimal 1 siswa terlebih dahulu!');
+        return;
+    }
+    if (!confirm('⚠️ PERINGATAN!\n\nAnda akan menghapus ' + checked + ' data siswa.\n\nData tidak dapat dikembalikan!\n\nYakin lanjutkan?')) return;
+
+    inputAksi.value = 'terpilih';
+    formHapus.submit();
+}
+
+// Hapus semua
+function hapusSemua() {
     const total = {{ $students->total() }};
-    return confirm('⚠️ PERINGATAN KERAS!\n\nAnda akan menghapus SEMUA ' + total + ' data siswa!\n\nTindakan ini TIDAK DAPAT DIBATALKAN!\n\nKetik OK untuk melanjutkan atau Cancel untuk membatalkan.');
+    if (total === 0) {
+        alert('Tidak ada data siswa!');
+        return;
+    }
+    if (!confirm('⚠️ PERINGATAN KERAS!\n\nAnda akan menghapus SEMUA ' + total + ' data siswa!\n\nTindakan ini TIDAK DAPAT DIBATALKAN!\n\nKlik OK untuk melanjutkan.')) return;
+
+    inputAksi.value = 'semua';
+    formHapus.action = '{{ route('students.destroy-all') }}';
+    formHapus.submit();
 }
 </script>
 @endpush

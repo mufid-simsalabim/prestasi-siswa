@@ -94,20 +94,10 @@
                 </button>
 
             </form>
-
-            {{-- Info akun demo --}}
-            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                <p class="text-xs font-semibold text-blue-700 mb-2">Akun Demo:</p>
-                <div class="space-y-1 text-xs text-blue-600">
-                    <p>Admin: admin@gmail.com / admin123</p>
-                    <p>Guru: budi@gmail.com / guru123</p>
-                </div>
-            </div>
-
         </div>
 
         <p class="text-center text-blue-300 text-xs mt-6">
-            &copy; {{ date('Y') }} Sistem Pakar Prestasi Siswa
+            &copy; {{ date('Y') }} Penentuan Prestasi Siswa MIS ASSOLAHIYYAH  
         </p>
     </div>
 </div>

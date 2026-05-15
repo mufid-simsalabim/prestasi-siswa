@@ -8,20 +8,34 @@ class Student extends Model
 {
     protected $fillable = [
         'nama',
+        'nisn',
         'kelas',
+        'angkatan',
         'jenis_kelamin',
         'alamat',
     ];
 
-    // Relasi: satu siswa bisa punya banyak penilaian
+    // Relasi ke penilaian
     public function penilaian()
     {
         return $this->hasMany(Penilaian::class);
     }
 
-    // Ambil penilaian terbaru siswa
+    // Relasi ke raport
+    public function raport()
+    {
+        return $this->hasMany(Raport::class);
+    }
+
+    // Ambil penilaian terbaru
     public function penilaianTerbaru()
     {
         return $this->hasOne(Penilaian::class)->latest();
+    }
+
+    // Ambil tingkat kelas (angka depan dari kelas)
+    public function getTingkatAttribute()
+    {
+        return explode('-', $this->kelas)[0] ?? null;
     }
 }

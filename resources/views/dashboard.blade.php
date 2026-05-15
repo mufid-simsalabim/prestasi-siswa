@@ -11,7 +11,9 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Siswa</p>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {{ $user->isGuru() ? 'Siswa Kelas ' . $user->kelas : 'Total Siswa' }}
+                </p>
                 <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ $totalSiswa }}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
@@ -20,7 +22,9 @@
                 </svg>
             </div>
         </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Terdaftar dalam sistem</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            {{ $user->isGuru() ? 'Di kelas Anda' : 'Terdaftar dalam sistem' }}
+        </p>
     </div>
 
     {{-- Total Penilaian --}}
@@ -39,12 +43,16 @@
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Data telah diinput</p>
     </div>
 
-    {{-- Total Guru --}}
+    {{-- Total Guru / Kelas --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Guru</p>
-                <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ $totalGuru }}</p>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {{ $user->isGuru() ? 'Kelas Saya' : 'Total Guru' }}
+                </p>
+                <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">
+                    {{ $user->isGuru() ? $user->kelas : $totalGuru }}
+                </p>
             </div>
             <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
                 <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +60,9 @@
                 </svg>
             </div>
         </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Aktif mengajar</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            {{ $user->isGuru() ? 'Wali kelas Anda' : 'Aktif mengajar' }}
+        </p>
     </div>
 
     {{-- Total Rules --}}
@@ -68,7 +78,7 @@
                 </svg>
             </div>
         </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Rule IF-THEN aktif</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Rule IF-THEN C4.5</p>
     </div>
 
 </div>
@@ -78,7 +88,12 @@
 
     {{-- Grafik Prestasi --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-        <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-4">Grafik Kategori Prestasi</h3>
+        <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-4">
+            Grafik Kategori Prestasi
+            @if($user->isGuru())
+            <span class="text-xs font-normal text-gray-500 ml-1">(Kelas {{ $user->kelas }})</span>
+            @endif
+        </h3>
         <div class="relative h-64">
             <canvas id="grafikPrestasi"></canvas>
         </div>
@@ -86,7 +101,9 @@
 
     {{-- Grafik Kelas --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-        <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-4">Grafik Siswa per Kelas</h3>
+        <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-4">
+            {{ $user->isGuru() ? 'Jumlah Siswa Kelas ' . $user->kelas : 'Grafik Siswa per Kelas' }}
+        </h3>
         <div class="relative h-64">
             <canvas id="grafikKelas"></canvas>
         </div>
@@ -100,7 +117,12 @@
     {{-- Ranking Siswa --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold text-gray-800 dark:text-white">Top 5 Ranking Siswa</h3>
+            <h3 class="text-base font-semibold text-gray-800 dark:text-white">
+                Top 5 Ranking
+                @if($user->isGuru())
+                <span class="text-xs font-normal text-gray-500">(Kelas {{ $user->kelas }})</span>
+                @endif
+            </h3>
             <a href="{{ route('penilaian.ranking') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Lihat semua</a>
         </div>
         <div class="space-y-3">
@@ -112,7 +134,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800 dark:text-white truncate">{{ $item->student->nama }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $item->student->kelas }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Kelas {{ $item->student->kelas }}</p>
                 </div>
                 <span class="text-xs font-semibold
                     {{ $item->hasil_prestasi === 'Amat Baik' ? 'text-green-600' : ($item->hasil_prestasi === 'Baik' ? 'text-blue-600' : ($item->hasil_prestasi === 'Cukup' ? 'text-yellow-600' : 'text-red-600')) }}">
@@ -125,11 +147,15 @@
         </div>
     </div>
 
-    {{-- Aktivitas Terbaru --}}
+    {{-- Penilaian Terbaru --}}
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-base font-semibold text-gray-800 dark:text-white">Penilaian Terbaru</h3>
-            <a href="{{ route('penilaian.index') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Lihat semua</a>
+            @if($user->isGuru())
+            <a href="{{ route('penilaian.index') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Input penilaian</a>
+            @else
+            <a href="{{ route('penilaian.hasil') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Lihat semua</a>
+            @endif
         </div>
         <div class="space-y-3">
             @forelse($penilaianTerbaru as $item)
@@ -139,7 +165,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800 dark:text-white truncate">{{ $item->student->nama }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $item->semester }} • oleh {{ $item->guru->name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $item->semester }} • Kelas {{ $item->student->kelas }}</p>
                 </div>
                 @if($item->hasil_prestasi)
                 <span class="text-xs px-2 py-1 rounded-full font-medium
@@ -160,11 +186,10 @@
 
 @push('scripts')
 <script>
-// Data dari Laravel
 const grafikPrestasiData = @json($grafikPrestasi);
 const grafikKelasData    = @json($grafikKelas);
 
-// Grafik Prestasi (Doughnut)
+// Grafik Prestasi
 const ctxPrestasi = document.getElementById('grafikPrestasi').getContext('2d');
 new Chart(ctxPrestasi, {
     type: 'doughnut',
@@ -185,7 +210,7 @@ new Chart(ctxPrestasi, {
     }
 });
 
-// Grafik Kelas (Bar)
+// Grafik Kelas
 const ctxKelas = document.getElementById('grafikKelas').getContext('2d');
 new Chart(ctxKelas, {
     type: 'bar',

@@ -22,7 +22,7 @@ class StudentController extends Controller
     // Tampilkan daftar semua siswa
     public function index(Request $request)
     {
-        $search    = $request->get('search');
+        $search      = $request->get('search');
         $kelasFilter = $request->get('kelas');
 
         $students = Student::query()
@@ -101,21 +101,56 @@ class StudentController extends Controller
             ->with('success', 'Data siswa berhasil diperbarui.');
     }
 
-    // Hapus siswa
+    // Hapus satu siswa
     public function destroy(Student $student)
     {
+        // Hapus penilaian siswa dulu
+        \DB::table('penilaian')->where('student_id', $student->id)->delete();
         $student->delete();
 
         return redirect()->route('students.index')
             ->with('success', 'Data siswa berhasil dihapus.');
     }
 
-    // Import siswa dari Excel/CSV
+    // Hapus semua siswa
+    public function destroyAll()
+    {
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        \DB::table('penilaian')->truncate();
+        \DB::table('students')->truncate();
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        return redirect()->route('students.index')
+            ->with('success', 'Semua data siswa berhasil dihapus.');
+    }
+
+    // Hapus siswa terpilih
+    public function destroySelected(Request $request)
+    {
+        $ids = $request->input('selected', []);
+
+        if (empty($ids)) {
+            return redirect()->route('students.index')
+                ->with('error', 'Tidak ada siswa yang dipilih.');
+        }
+
+        // Hapus penilaian siswa terpilih dulu
+        \DB::table('penilaian')->whereIn('student_id', $ids)->delete();
+
+        // Baru hapus siswa
+        Student::whereIn('id', $ids)->delete();
+
+        return redirect()->route('students.index')
+            ->with('success', count($ids) . ' data siswa berhasil dihapus.');
+    }
+
+    // Tampilkan form import
     public function importForm()
     {
         return view('students.import');
     }
 
+    // Proses import Excel/CSV
     public function import(Request $request)
     {
         $request->validate([
@@ -130,17 +165,14 @@ class StudentController extends Controller
             $file      = $request->file('file');
             $extension = $file->getClientOriginalExtension();
 
-            // Baca file CSV
             if ($extension === 'csv') {
                 $data = array_map('str_getcsv', file($file->getRealPath()));
             } else {
-                // Baca file Excel pakai PhpSpreadsheet
                 $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
                 $sheet       = $spreadsheet->getActiveSheet();
                 $data        = $sheet->toArray();
             }
 
-            // Skip baris pertama (header)
             $imported = 0;
             foreach (array_slice($data, 1) as $row) {
                 if (empty($row[0])) continue;
@@ -162,65 +194,42 @@ class StudentController extends Controller
                 ->with('error', 'Gagal import: ' . $e->getMessage());
         }
     }
-    // Download template Excel untuk import
-public function downloadTemplate()
-{
-    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
 
-    // Header
-    $sheet->setCellValue('A1', 'nama');
-    $sheet->setCellValue('B1', 'kelas');
-    $sheet->setCellValue('C1', 'jenis_kelamin');
-    $sheet->setCellValue('D1', 'alamat');
+    // Download template Excel
+    public function downloadTemplate()
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
 
-    // Contoh data
-    $sheet->setCellValue('A2', 'Ahmad Fauzi');
-    $sheet->setCellValue('B2', '1-A');
-    $sheet->setCellValue('C2', 'L');
-    $sheet->setCellValue('D2', 'Jl. Merdeka No. 1');
+        $sheet->setCellValue('A1', 'nama');
+        $sheet->setCellValue('B1', 'kelas');
+        $sheet->setCellValue('C1', 'jenis_kelamin');
+        $sheet->setCellValue('D1', 'alamat');
 
-    $sheet->setCellValue('A3', 'Dewi Putri');
-    $sheet->setCellValue('B3', '1-B');
-    $sheet->setCellValue('C3', 'P');
-    $sheet->setCellValue('D3', 'Jl. Mawar No. 2');
+        $sheet->setCellValue('A2', 'Ahmad Fauzi');
+        $sheet->setCellValue('B2', '1-A');
+        $sheet->setCellValue('C2', 'L');
+        $sheet->setCellValue('D2', 'Jl. Merdeka No. 1');
 
-    // Style header
-    $sheet->getStyle('A1:D1')->getFont()->setBold(true);
-    $sheet->getColumnDimension('A')->setWidth(25);
-    $sheet->getColumnDimension('B')->setWidth(10);
-    $sheet->getColumnDimension('C')->setWidth(15);
-    $sheet->getColumnDimension('D')->setWidth(30);
+        $sheet->setCellValue('A3', 'Dewi Putri');
+        $sheet->setCellValue('B3', '1-B');
+        $sheet->setCellValue('C3', 'P');
+        $sheet->setCellValue('D3', 'Jl. Mawar No. 2');
 
-    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+        $sheet->getColumnDimension('A')->setWidth(25);
+        $sheet->getColumnDimension('B')->setWidth(10);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(30);
 
-    $filename = 'template-import-siswa.xlsx';
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="' . $filename . '"');
-    header('Cache-Control: max-age=0');
+        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'template-import-siswa.xlsx';
 
-    $writer->save('php://output');
-    exit;
-}
-// Hapus semua siswa
-public function destroyAll()
-{
-    Student::truncate();
-    return redirect()->route('students.index')
-        ->with('success', 'Semua data siswa berhasil dihapus.');
-}
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
 
-// Hapus siswa terpilih
-public function destroySelected(Request $request)
-{
-    $request->validate([
-        'selected' => 'required|array',
-        'selected.*' => 'exists:students,id',
-    ]);
-
-    Student::whereIn('id', $request->selected)->delete();
-
-    return redirect()->route('students.index')
-        ->with('success', count($request->selected) . ' data siswa berhasil dihapus.');
-}
+        $writer->save('php://output');
+        exit;
+    }
 }
