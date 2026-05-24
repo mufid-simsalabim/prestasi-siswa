@@ -123,7 +123,7 @@
                 <span class="text-xs font-normal text-gray-500">(Kelas {{ $user->kelas }})</span>
                 @endif
             </h3>
-            <a href="{{ route('penilaian.ranking') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Lihat semua</a>
+            <a href="{{ route('ranking.kelas') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Lihat semua</a>
         </div>
         <div class="space-y-3">
             @forelse($rankingSiswa as $index => $item)
@@ -154,7 +154,11 @@
             @if($user->isGuru())
             <a href="{{ route('penilaian.index') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Input penilaian</a>
             @else
-            <a href="{{ route('penilaian.hasil') }}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Lihat semua</a>
+            @if(auth()->user()->isAdmin())
+<a href="{{ route('penilaian.hasil') }}"
+@else
+<a href="{{ route('guru.hasil') }}"
+@endif class="text-xs text-blue-600 hover:text-blue-700 font-medium">Lihat semua</a>
             @endif
         </div>
         <div class="space-y-3">

@@ -13,34 +13,31 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\RaportController;
 use App\Http\Controllers\RankingController;
 
-/*
-|--------------------------------------------------------------------------
-| Landing Page (publik)
-|--------------------------------------------------------------------------
-*/
+// Landing Page
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 
-/*
-|--------------------------------------------------------------------------
-| Auth
-|--------------------------------------------------------------------------
-*/
+// Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Routes
-|--------------------------------------------------------------------------
-*/
+// Authenticated
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Ranking Kelas (guru & admin)
+    // Ranking Kelas (admin & guru)
     Route::get('/ranking-kelas', [RankingController::class, 'rankingKelas'])->name('ranking.kelas');
+
+    // Proses C4.5 (admin & guru)
+    Route::get('/c45', [C45Controller::class, 'index'])->name('c45.index');
+    Route::get('/c45/proses', [C45Controller::class, 'proses'])->name('c45.proses');
+
+    // Hasil Klasifikasi (admin & guru)
+    Route::get('/hasil-klasifikasi', [PenilaianController::class, 'hasil'])->name('penilaian.hasil');
+    Route::get('/hasil-prestasi', [PenilaianController::class, 'hasil'])->name('guru.hasil');
+    Route::get('/export-pdf', [PenilaianController::class, 'exportPdf'])->name('penilaian.export-pdf');
 
     /*
     |--------------------------------------------------------------------------
@@ -66,16 +63,9 @@ Route::middleware(['auth'])->group(function () {
         // Kelas
         Route::resource('kelas', KelasController::class);
 
-        // Ranking Angkatan (hanya admin)
+        // Ranking Angkatan
         Route::get('/ranking-angkatan', [RankingController::class, 'rankingAngkatan'])->name('ranking.angkatan');
 
-        // Hasil Klasifikasi & Export PDF (admin)
-        Route::get('/hasil-klasifikasi', [PenilaianController::class, 'hasil'])->name('penilaian.hasil');
-        Route::get('/export-pdf', [PenilaianController::class, 'exportPdf'])->name('penilaian.export-pdf');
-
-        // Proses C4.5 (admin)
-        Route::get('/c45', [C45Controller::class, 'index'])->name('c45.index');
-        Route::get('/c45/proses', [C45Controller::class, 'proses'])->name('c45.proses');
     });
 
     /*
@@ -88,15 +78,13 @@ Route::middleware(['auth'])->group(function () {
         // Penilaian
         Route::resource('penilaian', PenilaianController::class);
 
-        // Hasil Klasifikasi (guru)
-        Route::get('/hasil-prestasi', [PenilaianController::class, 'hasil'])->name('guru.hasil');
-
         // Raport
         Route::get('/raport', [RaportController::class, 'index'])->name('raport.index');
         Route::get('/raport/{student}/input', [RaportController::class, 'input'])->name('raport.input');
         Route::post('/raport/{student}/store', [RaportController::class, 'store'])->name('raport.store');
         Route::get('/raport/{student}/show', [RaportController::class, 'show'])->name('raport.show');
         Route::get('/raport/{student}/cetak', [RaportController::class, 'cetak'])->name('raport.cetak');
+
     });
 
 });
